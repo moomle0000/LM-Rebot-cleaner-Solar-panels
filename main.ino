@@ -35,6 +35,7 @@ int distance; // variable for the distance measurement
 int right = 0;
 int ultrastat = 0;
 int scultrastat = 0;
+bool toggle;
 
 void setup() {
   // Initialize serial and wait for port to open:
@@ -51,6 +52,7 @@ void setup() {
   pinMode(rollerbutton, INPUT_PULLUP);
   Serial.begin(9600);
   // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
+  counter = 0;
 
 
 
@@ -111,32 +113,31 @@ void starte() {
 
 
 
-void motorleft() {
-  digitalWrite(in1, HIGH); // motor controller left
-  digitalWrite(in2, LOW); // motor controller left
-  digitalWrite(in3, HIGH); // motor controller left
-  digitalWrite(in4, LOW); // motor controller left
 
-  analogWrite(enA, 100); // motor enA speed 
-  analogWrite(enB, 100); // motor enB speed 
 
+
+void enginAforword() {
+  digitalWrite(in1, LOW); // motor controller right
+  digitalWrite(in2, HIGH); // motor controller right
+  analogWrite(enA, 255); // motor enA speed
+}
+
+void enginAbackword() {
+  digitalWrite(in1, HIGH); // motor controller right
+  digitalWrite(in2, LOW); // motor controller right
+  analogWrite(enA, 255); // motor enA speed
 
 }
 
-void motorright() {
-  stopmotor();
-  digitalWrite(in1, LOW); // motor controller right
-  digitalWrite(in2, HIGH); // motor controller right
+void enginBforword() {
+  digitalWrite(in3, HIGH); // motor controller right
+  digitalWrite(in4, LOW); // motor controller right
+  analogWrite(enB, 255); // motor enB speed
+}
+void enginBbackword() {
   digitalWrite(in3, LOW); // motor controller right
   digitalWrite(in4, HIGH); // motor controller right
-
-  analogWrite(enA, 100); // motor enA speed 
-  analogWrite(enB, 100); // motor enB speed 
-  //delay(20);
-
-
-
-
+  analogWrite(enB, 255); // motor enB speed
 }
 
 int ultrasonic() {
@@ -181,15 +182,18 @@ void enging() {
     ultras = cm;
     if (cm < 10) {
       if (ultrastat == 0) {
-        motorleft();
+        enginAforword();
+        enginBforword();
       }
       if (ultrastat == 1) {
-        motorright();
+        enginAbackword();
+        enginBforword();
       }
     }
     if (cm > 10) {
       ultrastat = 1;
-      motorright();
+      enginAbackword();
+      enginBforword();
     }
 
   } else {
@@ -211,7 +215,7 @@ void stopall() {
     stopmotor();
     start = 0;
     ultrastat = 0;
-    motorleft();
+    enginAforword();
   }
 
 }
@@ -224,16 +228,23 @@ void onScheduleTestChange()  {
 
   if (schedule_test.isActive()) {
     Serial.println("ON schedule_test");
-      start = 1;
-    
+    start = 1;
+    //counter = ++counter;
 
+    if (toggle) {
+      counter = ++counter;
+      toggle = false;
+    }
+
+
+  }else{
+    toggle = true;
   }
 
   if (ArduinoCloud.connected()) {
     time_read = ArduinoCloud.getLocalTime();
   }
 }
-
 
 
 
